@@ -1,10 +1,10 @@
 // 1. Stan konta Emerald
-const emeraldWallet = {
+export const emeraldWallet = {
   balance: 4250.0,
 };
 
 // 2. Baza słowników (do list rozwijanych i podpowiedzi)
-const availableTowns = [
+export const availableTowns = [
   "Warszawa",
   "Kraków",
   "Wrocław",
@@ -17,7 +17,7 @@ const availableTowns = [
   "Ropczyce",
 ];
 
-const availableKeywords = [
+export const availableKeywords = [
   "elektronika",
   "sport",
   "turystyka",
@@ -69,7 +69,7 @@ export const products = [
 ];
 
 // 4. Baza Kampanii (Zwróć uwagę na klucz 'productId', który łączy kampanię z produktem)
-const campaigns = [
+export const campaigns = [
   {
     id: "camp_101",
     productId: "prod_001", // Powiązane ze słuchawkami

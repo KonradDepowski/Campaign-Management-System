@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {
   Card,
   CardAction,
@@ -7,13 +8,20 @@ import {
 } from "../ui/card";
 
 interface ProductCardProps {
+  id: string;
   name: string;
   price: number;
   stock: number;
   imageUrl: string;
 }
 
-const ProductCard = ({ name, price, stock, imageUrl }: ProductCardProps) => {
+const ProductCard = ({
+  id,
+  name,
+  price,
+  stock,
+  imageUrl,
+}: ProductCardProps) => {
   return (
     <Card className="p-0 w-80 pb-6">
       <CardHeader className="p-0">
@@ -26,9 +34,12 @@ const ProductCard = ({ name, price, stock, imageUrl }: ProductCardProps) => {
       </CardContent>
 
       <CardAction className="flex justify-center items-center w-full px-6">
-        <button className="p-3 bg-[#50C878] text-black text-md rounded-xl w-full hover:bg-[#50C878]/90 cursor-pointer">
+        <Link
+          to={`/products?createCampaignFor=${id}`}
+          className="p-3 bg-[#50C878] text-black text-md rounded-xl w-full text-center hover:bg-[#50C878]/90 cursor-pointer"
+        >
           Create Campaign
-        </button>
+        </Link>
       </CardAction>
     </Card>
   );
