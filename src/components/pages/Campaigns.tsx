@@ -1,5 +1,8 @@
+import { DataTable } from "../data-table";
+import { campaigns } from "@/data";
+
 const Campaigns = () => {
-  return <div>Campaigns</div>;
+  return <DataTable data={campaigns} />;
 };
 
 export default Campaigns;
