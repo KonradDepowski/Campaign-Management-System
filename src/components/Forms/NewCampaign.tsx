@@ -25,6 +25,7 @@ import {
 import { KeywordsInput } from "@/components/ui/keywords-input";
 import { campaignSchema } from "@/schema/form";
 import { availableKeywords, availableTowns, campaigns } from "@/data";
+import { useSearchParams } from "react-router-dom";
 
 const STARTING_BALANCE_PLN = 4750;
 
@@ -36,18 +37,32 @@ function formatPln(value: number) {
   return `${safe.toFixed(2)} PLN`;
 }
 
-export function NewCampaign({ productId }: { productId: string }) {
+export function NewCampaign({ productId }: { productId: string | undefined }) {
+  const [searchParams] = useSearchParams();
+  const editCampaignId = searchParams.get("edit");
+
+  const existingCampaign = campaigns.find((c) => c.id === editCampaignId);
   const form = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(campaignSchema),
-    defaultValues: {
-      name: "",
-      status: true,
-      keywords: [],
-      town: "Warszawa",
-      radius: "",
-      bidAmount: "",
-      fund: "500",
-    },
+    defaultValues: existingCampaign
+      ? {
+          name: existingCampaign.name,
+          status: existingCampaign.status,
+          keywords: existingCampaign.keywords,
+          town: existingCampaign.town ?? "Warszawa",
+          radius: String(existingCampaign.radius),
+          bidAmount: String(existingCampaign.bidAmount),
+          fund: String(existingCampaign.fund),
+        }
+      : {
+          name: "",
+          status: true,
+          keywords: [],
+          town: "Warszawa",
+          radius: "",
+          bidAmount: "",
+          fund: "500",
+        },
   });
 
   const fund = form.watch("fund");
@@ -59,7 +74,8 @@ export function NewCampaign({ productId }: { productId: string }) {
     let campaignData = {
       id: `camp_${Math.floor(Math.random() * 10000)}`,
       ...values,
-      productId: productId,
+      town: values.town ?? "Warszawa",
+      productId: productId ?? "",
     };
 
     campaigns.push(campaignData);

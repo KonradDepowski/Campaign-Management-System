@@ -55,6 +55,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { campaigns } from "@/data";
+import { Link } from "react-router-dom";
 
 const campaignSchema = z.object({
   id: z.string(),
@@ -218,7 +219,9 @@ const columns: ColumnDef<Campaign>[] = [
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
+          <DropdownMenuItem>
+            <Link to={`/campaigns?edit=${row.original.id}`}>Edit</Link>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => deleteCampaign(row.original.id)}
