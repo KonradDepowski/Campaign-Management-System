@@ -28,6 +28,6 @@ npm install
 npm run dev
 ```
 
-The dev server proxies `/api` requests to the remote backend, so no additional configuration is needed.
+Live Server: https://campaign-management-system-mauve.vercel.app/products
 
----
+Backend Repo: https://github.com/KonradDepowski/CampaignServer
