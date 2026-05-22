@@ -3,11 +3,11 @@ import { XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useRef, useState } from "react";
+import useQueryKeywords from "@/hooks/useQueryKeywords";
 
 interface KeywordsInputProps {
   value: string[];
   onChange: (keywords: string[]) => void;
-  suggestions: string[];
   placeholder?: string;
   className?: string;
 }
@@ -15,7 +15,6 @@ interface KeywordsInputProps {
 export function KeywordsInput({
   value,
   onChange,
-  suggestions,
   placeholder = "Type to search...",
   className,
 }: KeywordsInputProps) {
@@ -24,9 +23,36 @@ export function KeywordsInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const filtered = suggestions.filter(
-    (s) =>
-      s.toLowerCase().includes(inputValue.toLowerCase()) && !value.includes(s),
+  const {
+    keywords,
+    isLoading: isKeywordsLoading,
+    error: keywordsError,
+  } = useQueryKeywords();
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  if (isKeywordsLoading) {
+    return <div>Loading keywords...</div>;
+  }
+  if (keywordsError) {
+    return <div>Error loading keywords: {keywordsError.message}</div>;
+  }
+
+  const filtered = keywords?.filter(
+    ({ name }) =>
+      name.toLowerCase().includes(inputValue.toLowerCase()) &&
+      !value.includes(name),
   );
 
   function addKeyWord(keyword: string) {
@@ -48,19 +74,6 @@ export function KeywordsInput({
       addKeyWord(filtered[0] ?? inputValue);
     }
   }
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   return (
     <div ref={containerRef} className="relative">
@@ -109,16 +122,16 @@ export function KeywordsInput({
 
       {open && filtered.length > 0 && (
         <ul className="absolute z-50 mt-1 w-full rounded-lg border bg-popover py-1 text-popover-foreground shadow-md ring-1 ring-foreground/10">
-          {filtered.map((s) => (
+          {filtered?.map(({ name }) => (
             <li
-              key={s}
+              key={name}
               onMouseDown={(e) => {
                 e.preventDefault();
-                addKeyWord(s);
+                addKeyWord(name);
               }}
               className="cursor-pointer px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
             >
-              {s}
+              {name}
             </li>
           ))}
         </ul>

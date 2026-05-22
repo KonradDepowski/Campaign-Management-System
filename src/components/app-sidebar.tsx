@@ -26,11 +26,6 @@ const data = {
   },
   navMain: [
     {
-      title: "Dashboard",
-      url: "/",
-      icon: <LayoutDashboardIcon />,
-    },
-    {
       title: "My Products",
       url: "/products",
       icon: <ListIcon />,
@@ -39,11 +34,6 @@ const data = {
       title: "Campaigns",
       url: "/campaigns",
       icon: <TablePropertiesIcon />,
-    },
-    {
-      title: "Wallet",
-      url: "/wallet",
-      icon: <WalletIcon />,
     },
   ],
 };

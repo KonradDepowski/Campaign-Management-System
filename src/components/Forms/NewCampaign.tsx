@@ -24,10 +24,14 @@ import {
 } from "@/components/ui/select";
 import { KeywordsInput } from "@/components/ui/keywords-input";
 import { campaignSchema } from "@/schema/form";
-import { availableKeywords, availableTowns, campaigns } from "@/data";
 import { useSearchParams } from "react-router-dom";
-
-const STARTING_BALANCE_PLN = 4750;
+import useQueryProduct from "@/hooks/useQueryProduct";
+import useQueryCampaign from "@/hooks/useQueryCampaign";
+import useQueryTowns from "@/hooks/useQueryTowns";
+import useCreateCampaign from "@/hooks/useCreateCampaign";
+import useUpdateCampaign from "@/hooks/useUpdateCampaign";
+import useQueryWallet from "@/hooks/useQueryWallet";
+import useUpdateWallet from "@/hooks/useUpdateWallet";
 
 type FormInput = z.input<typeof campaignSchema>;
 type FormOutput = z.output<typeof campaignSchema>;
@@ -41,18 +45,84 @@ export function NewCampaign({ productId }: { productId: string | undefined }) {
   const [searchParams] = useSearchParams();
   const editCampaignId = searchParams.get("edit");
 
-  const existingCampaign = campaigns.find((c) => c.id === editCampaignId);
+  const { product, isLoading, error } = useQueryProduct(productId ?? "");
+
+  const {
+    campaign,
+    isLoading: isCampaignLoading,
+    error: campaignError,
+  } = useQueryCampaign(editCampaignId);
+
+  const {
+    towns,
+    isLoading: isTownsLoading,
+    error: townsError,
+  } = useQueryTowns();
+
+  if (isLoading || (editCampaignId && isCampaignLoading) || isTownsLoading) {
+    return <div>Loading campaign...</div>;
+  }
+  if (error || (editCampaignId && campaignError) || townsError) {
+    return (
+      <div>
+        Error loading campaign:{" "}
+        {error?.message || campaignError?.message || townsError?.message}
+      </div>
+    );
+  }
+
+  return (
+    <CampaignFormInner
+      key={editCampaignId ?? "new"}
+      campaign={campaign}
+      towns={towns ?? []}
+      product={product}
+      productId={productId}
+      editCampaignId={editCampaignId}
+    />
+  );
+}
+
+type Town = { id: number; name: string };
+type Keyword = { id: number; name: string } | string;
+
+type CampaignData = {
+  name: string;
+  status: boolean;
+  keywords: Keyword[];
+  town: string;
+  radius: number | string;
+  bidAmount: number | string;
+  fund: number | string;
+  productId?: string;
+};
+
+function CampaignFormInner({
+  campaign,
+  towns,
+  product,
+  productId,
+  editCampaignId,
+}: {
+  campaign?: CampaignData;
+  towns: Town[];
+  product: { name: string };
+  productId: string | undefined;
+  editCampaignId: string | null;
+}) {
   const form = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(campaignSchema),
-    defaultValues: existingCampaign
+    defaultValues: campaign
       ? {
-          name: existingCampaign.name,
-          status: existingCampaign.status,
-          keywords: existingCampaign.keywords,
-          town: existingCampaign.town ?? "Warszawa",
-          radius: String(existingCampaign.radius),
-          bidAmount: String(existingCampaign.bidAmount),
-          fund: String(existingCampaign.fund),
+          name: campaign.name,
+          status: campaign.status,
+          keywords: (campaign.keywords ?? []).map((k) =>
+            typeof k === "string" ? k : k.name,
+          ),
+          town: campaign.town ?? "Warszawa",
+          radius: String(campaign.radius),
+          bidAmount: String(campaign.bidAmount),
+          fund: String(campaign.fund),
         }
       : {
           name: "",
@@ -65,46 +135,58 @@ export function NewCampaign({ productId }: { productId: string | undefined }) {
         },
   });
 
+  const { wallet } = useQueryWallet();
+  const { mutate: updateWallet } = useUpdateWallet();
+
+  const { mutate: createCampaign } = useCreateCampaign({
+    onSuccess: () => {
+      const fundValue = Number(form.getValues("fund"));
+      const currentBalance = Number(wallet?.balance ?? 0);
+      if (!Number.isNaN(currentBalance) && !Number.isNaN(fundValue)) {
+        updateWallet({ balance: String(currentBalance - fundValue) });
+      }
+      toast("Kampania zapisana", { position: "bottom-right" });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Błąd zapisu kampanii", {
+        position: "bottom-right",
+      });
+    },
+  });
+
+  const { mutate: update } = useUpdateCampaign({
+    id: editCampaignId ?? "",
+    onSuccess: () => {
+      toast("Kampania zaktualizowana", { position: "bottom-right" });
+    },
+    onError: (err) => {
+      toast.error(
+        err instanceof Error ? err.message : "Błąd aktualizacji kampanii",
+        { position: "bottom-right" },
+      );
+    },
+  });
+
   const fund = form.watch("fund");
   const fundNumber = Number.parseFloat(String(fund ?? 0));
+  const currentBalance = Number(wallet?.balance ?? 0);
   const balanceAfter =
-    STARTING_BALANCE_PLN - (Number.isFinite(fundNumber) ? fundNumber : 0);
+    currentBalance - (Number.isFinite(fundNumber) ? fundNumber : 0);
 
   function onSubmit(values: FormOutput) {
-    let campaignData = {
-      id: `camp_${Math.floor(Math.random() * 10000)}`,
+    const campaignData = {
       ...values,
-      town: values.town ?? "Warszawa",
-      productId: productId ?? "",
+      productId: productId ?? campaign?.productId,
     };
 
-    campaigns.push(campaignData);
-
-    console.log(campaigns);
-
-    toast("Kampania zapisana", {
-      description: (
-        <pre className="mt-2 w-90 overflow-x-auto rounded-md bg-code p-4 text-code-foreground">
-          <code>
-            {JSON.stringify(
-              {
-                ...values,
-                balanceAfter: balanceAfter,
-              },
-              null,
-              2,
-            )}
-          </code>
-        </pre>
-      ),
-      position: "bottom-right",
-      classNames: {
-        content: "flex flex-col gap-2",
-      },
-      style: {
-        "--border-radius": "calc(var(--radius)  + 4px)",
-      } as React.CSSProperties,
-    });
+    if (editCampaignId) {
+      update({ ...campaignData, id: editCampaignId } as Record<
+        string,
+        unknown
+      >);
+    } else {
+      createCampaign(campaignData as Record<string, unknown>);
+    }
   }
 
   return (
@@ -117,7 +199,7 @@ export function NewCampaign({ productId }: { productId: string | undefined }) {
         product.
       </p>
       <p className="mt-2 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
-        Creating a campaign for product ID: {productId}
+        Creating a campaign for product: {product.name}
       </p>
       <form
         id="campaignForm"
@@ -191,7 +273,6 @@ export function NewCampaign({ productId }: { productId: string | undefined }) {
                 <KeywordsInput
                   value={field.value ?? []}
                   onChange={field.onChange}
-                  suggestions={availableKeywords}
                   placeholder="Type to search keywords..."
                 />
                 {fieldState.invalid && (
@@ -211,6 +292,7 @@ export function NewCampaign({ productId }: { productId: string | undefined }) {
                   <Select
                     value={field.value}
                     onValueChange={(v) => field.onChange(v)}
+                    defaultValue={field.value}
                   >
                     <SelectTrigger
                       aria-invalid={fieldState.invalid}
@@ -219,9 +301,13 @@ export function NewCampaign({ productId }: { productId: string | undefined }) {
                       <SelectValue placeholder="Select a city" />
                     </SelectTrigger>
                     <SelectContent>
-                      {availableTowns.map((town) => (
-                        <SelectItem className="h-12" key={town} value={town}>
-                          {town}
+                      {towns?.map((town: { id: number; name: string }) => (
+                        <SelectItem
+                          className="h-12"
+                          key={town.id}
+                          value={town.name}
+                        >
+                          {town.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -54,14 +54,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { campaigns } from "@/data";
 import { Link } from "react-router-dom";
+import useDeleteCampaign from "@/hooks/useDeleteCampaign";
 
 const campaignSchema = z.object({
   id: z.string(),
   productId: z.string(),
   name: z.string(),
-  keywords: z.array(z.string()),
+  keywords: z.array(
+    z.union([z.string(), z.object({ id: z.number(), name: z.string() })]),
+  ),
   bidAmount: z.number(),
   fund: z.number(),
   status: z.boolean(),
@@ -71,171 +73,179 @@ const campaignSchema = z.object({
 
 type Campaign = z.infer<typeof campaignSchema>;
 
-function formatPln(value: number) {
-  return `${value.toFixed(2)} PLN`;
+function formatPln(value: number | string) {
+  return `${Number(value).toFixed(2)} PLN`;
 }
 
-const deleteCampaign = (id: string) => {
-  let data = [...campaigns];
-  data = campaigns.filter((campaign) => campaign.id !== id);
-  console.log(data);
-};
-
-const columns: ColumnDef<Campaign>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "name",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-mx-2"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Campaign Name
-        <ArrowUpDownIcon className="ml-1.5 size-3.5 text-muted-foreground" />
-      </Button>
-    ),
-    cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) =>
-      row.original.status ? (
-        <Badge className="bg-emerald-500 text-white">On</Badge>
-      ) : (
-        <Badge variant="outline">Off</Badge>
+function buildColumns(
+  deleteCampaign: ReturnType<typeof useDeleteCampaign>,
+): ColumnDef<Campaign>[] {
+  return [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        </div>
       ),
-  },
-  {
-    accessorKey: "keywords",
-    header: "Keywords",
-    cell: ({ row }) => (
-      <div className="flex flex-wrap gap-1">
-        {row.original.keywords.map((kw) => (
-          <Badge key={kw} variant="secondary" className="text-xs">
-            {kw}
-          </Badge>
-        ))}
-      </div>
-    ),
-    enableSorting: false,
-  },
-  {
-    accessorKey: "town",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-mx-2"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Town
-        <ArrowUpDownIcon className="ml-1.5 size-3.5 text-muted-foreground" />
-      </Button>
-    ),
-    cell: ({ row }) => row.original.town,
-  },
-  {
-    accessorKey: "radius",
-    header: () => <div className="text-right">Radius</div>,
-    cell: ({ row }) => (
-      <div className="text-right">{row.original.radius} km</div>
-    ),
-  },
-  {
-    accessorKey: "bidAmount",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-mx-2 w-full justify-end"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Bid Amount
-        <ArrowUpDownIcon className="ml-1.5 size-3.5 text-muted-foreground" />
-      </Button>
-    ),
-    cell: ({ row }) => (
-      <div className="text-right">{formatPln(row.original.bidAmount)}</div>
-    ),
-  },
-  {
-    accessorKey: "fund",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-mx-2 w-full justify-end"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Fund
-        <ArrowUpDownIcon className="ml-1.5 size-3.5 text-muted-foreground" />
-      </Button>
-    ),
-    cell: ({ row }) => (
-      <div className="text-right">{formatPln(row.original.fund)}</div>
-    ),
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="flex size-8 text-muted-foreground data-[state=open]:bg-muted"
-            size="icon"
-          >
-            <EllipsisVerticalIcon />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>
-            <Link to={`/campaigns?edit=${row.original.id}`}>Edit</Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => deleteCampaign(row.original.id)}
-            variant="destructive"
-          >
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  },
-];
+      cell: ({ row }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="-mx-2"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Campaign Name
+          <ArrowUpDownIcon className="ml-1.5 size-3.5 text-muted-foreground" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.name}</span>
+      ),
+      enableHiding: false,
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) =>
+        row.original.status ? (
+          <Badge className="bg-emerald-500 text-white">On</Badge>
+        ) : (
+          <Badge variant="outline">Off</Badge>
+        ),
+    },
+    {
+      accessorKey: "keywords",
+      header: "Keywords",
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-1">
+          {(row.original.keywords ?? []).map((kw) => {
+            const label = typeof kw === "string" ? kw : kw.name;
+            return (
+              <Badge key={label} variant="secondary" className="text-xs">
+                {label}
+              </Badge>
+            );
+          })}
+        </div>
+      ),
+      enableSorting: false,
+    },
+    {
+      accessorKey: "town",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="-mx-2"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Town
+          <ArrowUpDownIcon className="ml-1.5 size-3.5 text-muted-foreground" />
+        </Button>
+      ),
+      cell: ({ row }) => row.original.town,
+    },
+    {
+      accessorKey: "radius",
+      header: () => <div className="text-right">Radius</div>,
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.radius} km</div>
+      ),
+    },
+    {
+      accessorKey: "bidAmount",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="-mx-2 w-full justify-end"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Bid Amount
+          <ArrowUpDownIcon className="ml-1.5 size-3.5 text-muted-foreground" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div className="text-right">{formatPln(row.original.bidAmount)}</div>
+      ),
+    },
+    {
+      accessorKey: "fund",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="-mx-2 w-full justify-end"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Fund
+          <ArrowUpDownIcon className="ml-1.5 size-3.5 text-muted-foreground" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div className="text-right">{formatPln(row.original.fund)}</div>
+      ),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="flex size-8 text-muted-foreground data-[state=open]:bg-muted"
+              size="icon"
+            >
+              <EllipsisVerticalIcon />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuItem>
+              <Link to={`/campaigns?edit=${row.original.id}`}>Edit</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => deleteCampaign.mutate({ id: row.original.id })}
+              variant="destructive"
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
+}
 
 export function DataTable({ data: initialData }: { data: Campaign[] }) {
+  const deleteCampaign = useDeleteCampaign();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const columns = useMemo(() => buildColumns(deleteCampaign), []);
   const [data] = useState(() => initialData);
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});

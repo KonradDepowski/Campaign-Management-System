@@ -1,4 +1,6 @@
-// 1. Stan konta Emerald
+export const BACKEND_URL =  "/api";
+
+
 export const emeraldWallet = {
   balance: 4250.0,
 };

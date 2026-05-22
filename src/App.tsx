@@ -1,9 +1,11 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
 import RootLayout from "./components/pages/RootLayout";
-import Dashboard from "./components/pages/Dashboard";
 import Products from "./components/pages/Products";
 import Campaigns from "./components/pages/Campaigns";
-import { Wallet } from "lucide-react";
 
 export default function App() {
   const router = createBrowserRouter([
@@ -13,7 +15,7 @@ export default function App() {
       children: [
         {
           path: "/",
-          element: <Dashboard />,
+          element: <Navigate to="/products" />,
         },
         {
           path: "/products",
@@ -22,10 +24,6 @@ export default function App() {
         {
           path: "/campaigns",
           element: <Campaigns />,
-        },
-        {
-          path: "/wallet",
-          element: <Wallet />,
         },
       ],
     },
