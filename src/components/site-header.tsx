@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import useQueryWallet from "@/hooks/useQueryWallet";
+import { Spinner } from "./ui/spinner";
 
 export function SiteHeader() {
   const { wallet, isLoading, error } = useQueryWallet();
@@ -22,7 +23,7 @@ export function SiteHeader() {
         <div className="flex flex-row gap-1 items-center justify-center py-3 bg-accent px-3 rounded-md ">
           <h2>Balance</h2>
           {isLoading ? (
-            <span>Loading...</span>
+            <Spinner />
           ) : (
             <span>{Number(wallet?.balance ?? 0).toFixed(2)} PLN</span>
           )}

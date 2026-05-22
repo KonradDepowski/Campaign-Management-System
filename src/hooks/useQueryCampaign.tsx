@@ -1,4 +1,3 @@
-import { BACKEND_URL } from "@/data";
 import { useQuery } from "@tanstack/react-query";
 
 const useQueryCampaign = (id: string | null) => {
@@ -6,7 +5,7 @@ const useQueryCampaign = (id: string | null) => {
     queryKey: ["campaign", id],
     enabled: !!id,
     queryFn: async () => {
-      const response = await fetch(`${BACKEND_URL}/campaign/${id}`);
+      const response = await fetch(`/api/campaign/${id}`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }

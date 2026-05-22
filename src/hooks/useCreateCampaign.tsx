@@ -1,4 +1,3 @@
-import { BACKEND_URL } from "@/data";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
@@ -11,7 +10,7 @@ const useCreateCampaign = (options?: {
 
   return useMutation({
     mutationFn: async (data: Record<string, unknown>) => {
-      const res = await fetch(`${BACKEND_URL}/campaign`, {
+      const res = await fetch(`/api/campaign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -35,7 +34,6 @@ const useCreateCampaign = (options?: {
     },
     onError: (err) => {
       console.error(err);
-
       options?.onError?.(err);
     },
   });

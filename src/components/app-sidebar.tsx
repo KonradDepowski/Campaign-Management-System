@@ -10,20 +10,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import {
-  LayoutDashboardIcon,
-  ListIcon,
-  CommandIcon,
-  TablePropertiesIcon,
-  WalletIcon,
-} from "lucide-react";
+import { ListIcon, CommandIcon, TablePropertiesIcon } from "lucide-react";
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "My Products",

@@ -1,11 +1,10 @@
-import { BACKEND_URL } from "@/data";
 import { useQuery } from "@tanstack/react-query";
 
 const useQueryTowns = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ["towns"],
     queryFn: async () => {
-      const response = await fetch(`${BACKEND_URL}/towns`);
+      const response = await fetch(`/api/towns`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }

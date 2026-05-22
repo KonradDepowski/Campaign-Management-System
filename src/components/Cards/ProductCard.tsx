@@ -7,13 +7,9 @@ import {
   CardTitle,
 } from "../ui/card";
 
-interface ProductCardProps {
-  id: string;
-  name: string;
-  price: number;
-  stock: number;
-  imageUrl: string;
-}
+import type { Product } from "@/types";
+
+type ProductCardProps = Product;
 
 const ProductCard = ({
   id,
@@ -29,7 +25,7 @@ const ProductCard = ({
       </CardHeader>
       <CardContent>
         <CardTitle className="text-center">{name}</CardTitle>
-        <p className="text-center text-sm text-gray-500">${price}</p>
+        <p className="text-center text-sm text-gray-500">PLN{price}</p>
         <p className="text-center text-sm text-gray-500">{stock} in stock</p>
       </CardContent>
 

@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useRef, useState } from "react";
 import useQueryKeywords from "@/hooks/useQueryKeywords";
+import { Spinner } from "./ui/spinner";
 
 interface KeywordsInputProps {
   value: string[];
@@ -43,8 +44,9 @@ export function KeywordsInput({
   }, []);
 
   if (isKeywordsLoading) {
-    return <div>Loading keywords...</div>;
+    return <Spinner />;
   }
+
   if (keywordsError) {
     return <div>Error loading keywords: {keywordsError.message}</div>;
   }
@@ -71,7 +73,7 @@ export function KeywordsInput({
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" && inputValue.trim()) {
       e.preventDefault();
-      addKeyWord(filtered[0] ?? inputValue);
+      addKeyWord(filtered![0]?.name ?? inputValue);
     }
   }
 
@@ -120,9 +122,9 @@ export function KeywordsInput({
         />
       </div>
 
-      {open && filtered.length > 0 && (
+      {open && filtered!.length > 0 && (
         <ul className="absolute z-50 mt-1 w-full rounded-lg border bg-popover py-1 text-popover-foreground shadow-md ring-1 ring-foreground/10">
-          {filtered?.map(({ name }) => (
+          {filtered!.map(({ name }) => (
             <li
               key={name}
               onMouseDown={(e) => {

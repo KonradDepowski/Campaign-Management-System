@@ -1,13 +1,11 @@
-import { BACKEND_URL } from "@/data";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-type WalletUpdate = { balance: string };
+import type { WalletUpdate } from "@/types";
 
 const useUpdateWallet = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (updatedWallet: WalletUpdate) => {
-      const response = await fetch(`${BACKEND_URL}/wallet`, {
+      const response = await fetch(`/api/wallet`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

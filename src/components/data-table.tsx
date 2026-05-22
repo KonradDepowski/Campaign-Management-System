@@ -13,7 +13,6 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { z } from "zod";
 import {
   ArrowUpDownIcon,
   ChevronDownIcon,
@@ -56,22 +55,7 @@ import {
 } from "@/components/ui/table";
 import { Link } from "react-router-dom";
 import useDeleteCampaign from "@/hooks/useDeleteCampaign";
-
-const campaignSchema = z.object({
-  id: z.string(),
-  productId: z.string(),
-  name: z.string(),
-  keywords: z.array(
-    z.union([z.string(), z.object({ id: z.number(), name: z.string() })]),
-  ),
-  bidAmount: z.number(),
-  fund: z.number(),
-  status: z.boolean(),
-  town: z.string(),
-  radius: z.number(),
-});
-
-type Campaign = z.infer<typeof campaignSchema>;
+import type { Campaign } from "@/types";
 
 function formatPln(value: number | string) {
   return `${Number(value).toFixed(2)} PLN`;
@@ -244,9 +228,8 @@ function buildColumns(
 
 export function DataTable({ data: initialData }: { data: Campaign[] }) {
   const deleteCampaign = useDeleteCampaign();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const columns = useMemo(() => buildColumns(deleteCampaign), []);
-  const [data] = useState(() => initialData);
+  const data = initialData;
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);

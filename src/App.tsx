@@ -6,6 +6,7 @@ import {
 import RootLayout from "./components/pages/RootLayout";
 import Products from "./components/pages/Products";
 import Campaigns from "./components/pages/Campaigns";
+import { Toaster } from "./components/ui/sonner";
 
 export default function App() {
   const router = createBrowserRouter([
@@ -29,5 +30,10 @@ export default function App() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Toaster />
+    </>
+  );
 }

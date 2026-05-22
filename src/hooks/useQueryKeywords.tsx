@@ -1,15 +1,15 @@
-import { BACKEND_URL } from "@/data";
+import type { Keyword } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 
 const useQueryKeywords = () => {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<Keyword[]>({
     queryKey: ["keywords"],
     queryFn: async () => {
-      const response = await fetch(`${BACKEND_URL}/keywords`);
+      const response = await fetch(`/api/keywords`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      return response.json();
+      return response.json() as Promise<Keyword[]>;
     },
   });
   return { keywords: data, isLoading, error };

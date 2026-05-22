@@ -2,6 +2,7 @@ import ProductCard from "../Cards/ProductCard";
 import { useSearchParams } from "react-router-dom";
 import { NewCampaign } from "../Forms/NewCampaign";
 import useQueryProducts from "@/hooks/useQueryProducts";
+import { Spinner } from "../ui/spinner";
 
 const Products = () => {
   const [searchParams] = useSearchParams();
@@ -10,17 +11,25 @@ const Products = () => {
   const { products, isLoading, error } = useQueryProducts();
 
   if (isLoading) {
-    return <div>Loading products...</div>;
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Spinner size="12" />
+      </div>
+    );
   }
   if (error) {
-    return <div>Error loading products: {error.message}</div>;
+    return (
+      <div className="flex justify-center items-center h-full">
+        <p className="text-red-500">Error loading products: {error.message}</p>
+      </div>
+    );
   }
 
   return (
     <section className="p-4">
       {!createCampaignFor && (
-        <ul className="flex gap-8 flex-wrap">
-          {products?.map((product) => (
+        <ul className="flex justify-center md:justify-start gap-8 flex-wrap">
+          {products.map((product) => (
             <li key={product.id}>
               <ProductCard
                 id={product.id}

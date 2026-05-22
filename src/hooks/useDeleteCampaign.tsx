@@ -1,4 +1,3 @@
-import { BACKEND_URL } from "@/data";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const useDeleteCampaign = (options?: {
@@ -9,7 +8,7 @@ const useDeleteCampaign = (options?: {
 
   return useMutation({
     mutationFn: async ({ id }: { id: string }) => {
-      const res = await fetch(`${BACKEND_URL}/campaign/${id}`, {
+      const res = await fetch(`/api/campaign/${id}`, {
         method: "DELETE",
       });
 
@@ -18,7 +17,8 @@ const useDeleteCampaign = (options?: {
         throw new Error(text || "Failed to delete campaign");
       }
 
-      return res.json();
+      const text = await res.text();
+      return text ? JSON.parse(text) : null;
     },
     onSuccess: async (data) => {
       await queryClient.refetchQueries({
