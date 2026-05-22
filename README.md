@@ -28,6 +28,6 @@ npm install
 npm run dev
 ```
 
-Live Server: https://campaign-management-system-mauve.vercel.app/products
+Live Server: https://campaign-management-system-mauve.vercel.app
 
 Backend Repo: https://github.com/KonradDepowski/CampaignServer
